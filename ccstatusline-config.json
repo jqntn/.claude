@@ -1,0 +1,84 @@
+{
+  "version": 3,
+  "lines": [
+    [
+      {
+        "id": "1",
+        "type": "model",
+        "color": "cyan"
+      },
+      {
+        "id": "867bcd36-2b55-4eb2-b2c8-caee21d4eff0",
+        "type": "thinking-effort",
+        "backgroundColor": "bgMagenta"
+      },
+      {
+        "id": "6ec95844-6e57-4f75-a6f4-d089c186eccc",
+        "type": "output-style",
+        "backgroundColor": "bgBrightGreen"
+      },
+      {
+        "id": "3",
+        "type": "context-length",
+        "color": "brightBlack"
+      },
+      {
+        "id": "5",
+        "type": "git-branch",
+        "color": "magenta"
+      },
+      {
+        "id": "08e285ba-128e-496f-b505-b86a3af4b65f",
+        "type": "session-usage",
+        "backgroundColor": "bgBlue"
+      },
+      {
+        "id": "b8ab8302-b806-4dab-9ada-3edbb5aea4db",
+        "type": "reset-timer",
+        "backgroundColor": "bgBlue"
+      },
+      {
+        "id": "1ba58bf1-5c29-409f-9478-c6dc03c333f9",
+        "type": "weekly-usage",
+        "backgroundColor": "bgBrightMagenta"
+      },
+      {
+        "id": "caveman-badge",
+        "type": "custom-command",
+        "commandPath": "powershell -NoProfile -ExecutionPolicy Bypass -File \"%USERPROFILE%\\.claude\\hooks\\caveman-statusline.ps1\"",
+        "preserveColors": false,
+        "timeout": 3000
+      }
+    ],
+    [],
+    []
+  ],
+  "flexMode": "full-minus-40",
+  "compactThreshold": 60,
+  "colorLevel": 2,
+  "defaultPadding": " ",
+  "defaultPaddingSide": "both",
+  "inheritSeparatorColors": false,
+  "globalBold": false,
+  "gitCacheTtlSeconds": 5,
+  "minimalistMode": false,
+  "powerline": {
+    "enabled": true,
+    "separators": [
+      ""
+    ],
+    "separatorInvertBackground": [
+      false
+    ],
+    "startCaps": [],
+    "endCaps": [],
+    "theme": "nord-aurora",
+    "autoAlign": false,
+    "continueThemeAcrossLines": false
+  },
+  "installation": {
+    "method": "pinned",
+    "installedVersion": "2.2.27"
+  },
+  "exportedBy": "2.2.27"
+}

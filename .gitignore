@@ -3,6 +3,10 @@
 !.gitignore
 !CLAUDE.md
 !settings.json
+!ccstatusline-config.json
+
+!hooks/
+!hooks/**
 
 !skills/
 !skills/**
