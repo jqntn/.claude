@@ -23,7 +23,8 @@ git clone https://github.com/jqntn/.claude.git ~/.claude
 
 - `ccstatusline-config.json`: an export of the status line layout.
 
-- `hooks/caveman-statusline.ps1`: the caveman badge script.
+- `hooks/caveman-statusline.ps1`: it runs the badge script that the caveman
+plugin ships.
 
 - `skills/asd-ste100/`: a vendored writing skill.
 
@@ -46,6 +47,3 @@ After a change to the layout, export the config again, and copy it over
 
 `skills/asd-ste100` comes from a third-party project, and it keeps its own
 `LICENSE`. Upstream: https://github.com/woosal1337/blog
-
-`hooks/caveman-statusline.ps1` is a copy of the script the caveman plugin
-ships. Upstream: https://github.com/JuliusBrussee/caveman
