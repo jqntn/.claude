@@ -5,7 +5,7 @@ My Claude Code configuration.
 ## Install
 
 ```sh
-git clone https://github.com/jqntn/.claude.git ~/.claude
+git clone https://github.com/jqntn/.claude.git
 ```
 
 ## Prerequisites
