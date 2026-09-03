@@ -9,9 +9,17 @@
     "refreshInterval": 10
   },
   "enabledPlugins": {
+    "hypervisor-tools@obvious-marketplace": true,
     "caveman@caveman": true
   },
   "extraKnownMarketplaces": {
+    "obvious-marketplace": {
+      "source": {
+        "source": "git",
+        "url": "https://gitlab.obvious.tech/obvious/tools/claude-marketplace.git"
+      },
+      "autoUpdate": true
+    },
     "caveman": {
       "source": {
         "source": "github",
