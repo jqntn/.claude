@@ -10,7 +10,19 @@
   },
   "enabledPlugins": {
     "hypervisor-tools@obvious-marketplace": true,
-    "caveman@caveman": true
+    "caveman@caveman": true,
+    "dotnet@dotnet-agent-skills": true,
+    "dotnet-test@dotnet-agent-skills": true,
+    "dotnet-advanced@dotnet-agent-skills": true,
+    "dotnet-data@dotnet-agent-skills": true,
+    "dotnet-diag@dotnet-agent-skills": true,
+    "dotnet-msbuild@dotnet-agent-skills": true,
+    "dotnet-nuget@dotnet-agent-skills": true,
+    "dotnet-upgrade@dotnet-agent-skills": true,
+    "dotnet-template-engine@dotnet-agent-skills": true,
+    "dotnet-test-migration@dotnet-agent-skills": true,
+    "dotnet-aspnetcore@dotnet-agent-skills": true,
+    "unity@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "obvious-marketplace": {
@@ -25,13 +37,24 @@
         "source": "github",
         "repo": "JuliusBrussee/caveman"
       }
+    },
+    "dotnet-agent-skills": {
+      "source": {
+        "source": "github",
+        "repo": "dotnet/skills"
+      }
+    }
+  },
+  "outputStyle": "Concise",
+  "modelSettings": {
+    "claude-opus-5": {
+      "effortLevel": "xhigh"
     }
   },
   "autoUpdatesChannel": "latest",
   "tui": "fullscreen",
   "autoMemoryEnabled": false,
-  "skipWorkflowUsageWarning": true,
-  "theme": "auto",
   "skipDangerousModePermissionPrompt": true,
-  "outputStyle": "Concise"
+  "skipWorkflowUsageWarning": true,
+  "theme": "auto"
 }
