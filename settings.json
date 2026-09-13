@@ -10,6 +10,7 @@
   },
   "enabledPlugins": {
     "hypervisor-tools@obvious-marketplace": true,
+    "constellation@obvious-marketplace": true,
     "caveman@caveman": true,
     "dotnet@dotnet-agent-skills": true,
     "dotnet-test@dotnet-agent-skills": true,
