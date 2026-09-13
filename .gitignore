@@ -12,3 +12,6 @@
 
 !skills/
 !skills/**
+
+__pycache__/
+*.pyc
