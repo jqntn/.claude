@@ -29,6 +29,10 @@ def find_lint():
             return path
     return None
 
+RUNNER = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                      "run-python.cjs")
+LINT = find_lint() or "scripts/ste-lint.py"
+
 CARD = """<asd-ste100-standing-rule>
 ASD-STE100 governs every word the reader sees in this reply, and in any prose
 you write to a file: chat text, commit messages, docs, code comments, PR text,
@@ -60,9 +64,9 @@ LAYER 2 - the shape (a reply to a person, a task, a PR description)
 
 Lint the draft BEFORE you send it. A Stop hook lints it after, and a block puts
 a second copy of the same answer on the reader's screen:
-  python3 {lint} --fail-over 2.5 FILE
+  node "{runner}" "{lint}" --fail-over 2.5 FILE
 Full rules, both modes, and the four layer conflicts: load the asd-ste100 skill.
-</asd-ste100-standing-rule>""".format(lint=find_lint() or "scripts/ste-lint.py")
+</asd-ste100-standing-rule>""".format(runner=RUNNER, lint=LINT)
 
 
 def key_for(session):

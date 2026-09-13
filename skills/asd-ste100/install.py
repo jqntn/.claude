@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Installer for the asd-ste100 skill. One command arms every layer.
 
-    python3 install.py              install or repair
-    python3 install.py --dry-run    show the plan, write nothing
-    python3 install.py --uninstall  remove what this script added
-    python3 install.py --no-output-style   skip the output style
+    node hooks/run-python.cjs install.py              install or repair
+    node hooks/run-python.cjs install.py --dry-run    show the plan, write nothing
+    node hooks/run-python.cjs install.py --uninstall  remove what this script added
+    node hooks/run-python.cjs install.py --no-output-style   skip the output style
 
 What it wires, for Claude Code:
 
@@ -36,41 +36,52 @@ CLAUDE = os.path.join(HOME, ".claude")
 SETTINGS = os.path.join(CLAUDE, "settings.json")
 STYLE_NAME = "asd-ste100"
 
-HOOK_DIR = '"$HOME/.claude/skills/asd-ste100/hooks'
+HOOK_DIR = os.path.join(CLAUDE, "skills", "asd-ste100", "hooks")
+RUNNER = os.path.join(HOOK_DIR, "run-python.cjs")
+
+
+def command_hook(script, timeout, status_message=None):
+    hook = {
+        "type": "command",
+        "command": "node",
+        "args": [RUNNER, os.path.join(HOOK_DIR, script)],
+        "timeout": timeout,
+    }
+    if status_message:
+        hook["statusMessage"] = status_message
+    return hook
+
+
 HOOKS = {
     "UserPromptSubmit": {
         "marker": "ste-inject",
-        "entry": {"hooks": [{"type": "command",
-                             "command": "python3 {}/ste-inject.py\"".format(HOOK_DIR),
-                             "timeout": 10}]},
+        "entry": {"hooks": [command_hook("ste-inject.py", 10)]},
     },
     "PreToolUse": {
         "marker": "ste-pregate",
         "entry": {"matcher": "Bash|mcp__elliptic__.*",
-                  "hooks": [{"type": "command",
-                             "command": "python3 {}/ste-pregate.py\"".format(HOOK_DIR),
-                             "timeout": 15}]},
+                  "hooks": [command_hook("ste-pregate.py", 15)]},
     },
     "PostToolUse": {
         "marker": "ste-refresh",
         "entry": {"matcher": "*",
-                  "hooks": [{"type": "command",
-                             "command": "python3 {}/ste-refresh.py\"".format(HOOK_DIR),
-                             "timeout": 15}]},
+                  "hooks": [command_hook("ste-refresh.py", 15)]},
     },
     "Stop": {
         "marker": "ste-gate",
-        "entry": {"hooks": [{"type": "command",
-                             "command": "python3 {}/ste-gate.py\"".format(HOOK_DIR),
-                             "timeout": 30,
-                             "statusMessage": "Checking ASD-STE100"}]},
+        "entry": {
+            "hooks": [command_hook(
+                "ste-gate.py", 30, "Checking ASD-STE100")],
+        },
     },
 }
 MARKERS = tuple(spec["marker"] for spec in HOOKS.values())
 
 
 def is_ste_hook(hook):
-    cmd = hook.get("command", "") if isinstance(hook, dict) else ""
+    if not isinstance(hook, dict):
+        return False
+    cmd = " ".join([hook.get("command", "")] + (hook.get("args") or []))
     return any(m in cmd for m in MARKERS)
 
 

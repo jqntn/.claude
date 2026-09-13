@@ -183,14 +183,14 @@ An installed gate lints the reply after the model sends it. A block then makes t
 Before a final reply of more than 60 words, and before you write prose to a file:
 
 1. Write the draft to a scratch file.
-2. Run `python3 scripts/ste-lint.py --fail-over 2.5 draft.md` (installed path: `~/.claude/skills/asd-ste100/scripts/ste-lint.py`).
+2. Run `node hooks/run-python.cjs scripts/ste-lint.py --fail-over 2.5 draft.md` from the skill directory.
 3. Fix the reported categories. Lint one more time. Two passes, no more.
 4. Send the reply one time.
 
 ```
-python3 scripts/ste-lint.py draft.md            # flavored target: under 2.5 per 100 words
-python3 scripts/ste-lint.py --strict draft.md   # strict target: under 1.5 per 100 words
-python3 scripts/ste-lint.py --shape draft.md    # add the Layer 2 counts
+node hooks/run-python.cjs scripts/ste-lint.py draft.md            # flavored target: under 2.5 per 100 words
+node hooks/run-python.cjs scripts/ste-lint.py --strict draft.md   # strict target: under 1.5 per 100 words
+node hooks/run-python.cjs scripts/ste-lint.py --shape draft.md    # add the Layer 2 counts
 ```
 
 Report the final score with the text. Do not present text as clean without a lint run.

@@ -43,7 +43,7 @@ style through settings:
 
 ```
 bunx skills add woosal1337/blog
-python3 ~/.claude/skills/asd-ste100/install.py
+node "$HOME/.claude/skills/asd-ste100/hooks/run-python.cjs" "$HOME/.claude/skills/asd-ste100/install.py"
 ```
 
 The registry page for that command is the listing above. It reads this repo
@@ -62,6 +62,7 @@ SKILL.md                     the skill - name, description, the two layers
 scripts/ste-lint.py          executable code, per the spec convention
 references/ste-recurring-errors.md   docs loaded on demand
 hooks/hooks.json             the plugin's hook declarations
+hooks/run-python.cjs         cross-platform Python 3 launcher
 hooks/ste-*.py               the four hook programs
 .claude-plugin/plugin.json   the plugin manifest
 install.py, output-style.md  the settings route, for non-plugin installs
@@ -74,6 +75,9 @@ therefore arms every deterministic layer Claude Code offers. It symlinks the
 skill and the output style, adds four hook entries to
 `~/.claude/settings.json`, and backs the old file up first. A second run
 repairs the install. `--uninstall` removes exactly what it added.
+
+The hook commands use `hooks/run-python.cjs`. On Windows, it first tries the
+Python launcher and `python`. On macOS and Linux, it first tries `python3`.
 
 | Layer | File | When it fires | What it guarantees |
 |---|---|---|---|
@@ -91,14 +95,15 @@ ceiling forces one rewrite, one time per turn.
 ## The linter
 
 ```
-python3 scripts/ste-lint.py draft.md            # flavored: general prose, target under 2.5
-python3 scripts/ste-lint.py --strict draft.md   # strict: procedures and error messages
-python3 scripts/ste-lint.py --shape draft.md    # add the Layer 2 reply-shape counts
+node hooks/run-python.cjs scripts/ste-lint.py draft.md            # flavored: general prose, target under 2.5
+node hooks/run-python.cjs scripts/ste-lint.py --strict draft.md   # strict: procedures and error messages
+node hooks/run-python.cjs scripts/ste-lint.py --shape draft.md    # add the Layer 2 reply-shape counts
 ```
 
 The score is violations per 100 words. `--json` gives machine-readable
 output. `--fail-over N` exits 1 over the threshold, for CI gates and hooks.
-Python 3 standard library only, no dependencies.
+The linter uses only the Python 3 standard library. The launcher has no Node
+package dependencies.
 
 ## Scope
 

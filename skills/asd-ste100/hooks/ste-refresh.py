@@ -13,7 +13,7 @@
    fixes the file in the same turn.
 
 Both jobs inject context. Neither blocks. The turn counter is reset by
-ste-inject.sh on each user prompt.
+ste-inject.py on each user prompt.
 
 Canonical copy: the ep01 kit, asd-ste100/hooks/ste-refresh.py
 """
@@ -36,6 +36,8 @@ def find_lint():
 
 
 LINT = find_lint()
+RUNNER = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                      "run-python.cjs")
 STATE = os.path.expanduser("~/.claude/ste-gate")
 
 EVERY = 12          # tool calls between two cards
@@ -55,8 +57,8 @@ CARD = (
     "max 20 words for an instruction, no contractions, no semicolons, keep "
     "the articles. Layer 2: the next action first, numbered steps, no "
     "preamble, no recap, no closer. If the reply runs over 60 words, lint "
-    "the draft first: python3 {} --fail-over 2.5 FILE"
-).format(LINT or "scripts/ste-lint.py")
+    "the draft first: node \"{}\" \"{}\" --fail-over 2.5 FILE"
+).format(RUNNER, LINT or "scripts/ste-lint.py")
 
 
 def count_path(session):
