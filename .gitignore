@@ -12,6 +12,7 @@
 
 !skills/
 !skills/**
+skills/synced/
 
 __pycache__/
 *.pyc
