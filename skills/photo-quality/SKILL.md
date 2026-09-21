@@ -59,3 +59,54 @@ pip install opencv-python-headless numpy rawpy
 ```
 
 `rawpy` stays optional and adds the raw formats.
+
+## Neural scoring: photo_iqa.py
+
+```bash
+python scripts/photo_iqa.py IN
+python scripts/photo_iqa.py IN OUT --top 4
+```
+
+`photo_quality.py` measures contrast at edges. `photo_iqa.py` adds two neural axes
+from `pyiqa`, and it ranks every file on three axes at once.
+
+| axis | metrics | what it sees |
+|---|---|---|
+| `tech` | `topiq_nr`, `musiq`, `niqe`, `brisque` | noise, blur, exposure, artifacts |
+| `aesth` | `topiq_iaa`, `nima`, `laion_aes`, `clipiqa+` | composition and subject appeal |
+| `sharp` | tile-max Laplacian at native resolution | focus on the subject |
+
+Each axis is a z-score inside the folder. `mean` averages the three. `worst` takes
+the lowest of the three, and it finds the file with no weak side. Sort with
+`--rank-by`.
+
+`mean` finds the file with the most total merit. `worst` finds the file with no
+disqualifying flaw, because one strong axis cannot hide a weak one in a minimum.
+Recommend `--rank-by worst` whenever the user picks one keeper.
+
+The script prints the sharpness spread. Below 2x, say the set missed focus as a
+whole instead of naming a winner.
+
+Three traps this script does not remove:
+
+1. An aesthetic model can rank a soft frame first. It scores the scene, not the
+   focus. Always read the `sharp` column next to the `aesth` column.
+2. A burst of one scene gives a tiny aesthetic spread. Every frame shows the same
+   composition, so `aesth` separates almost nothing. Weight `tech` and `sharp`
+   higher for a burst.
+3. `tech` reads the whole frame, so smooth bokeh lowers it. A subject against a
+   blurred background scores lower than a flat textured wall at the same focus.
+   That is the reason `sharp` reads one tile only.
+
+The raw and JPG warning above applies to every model here. All eight learned on
+finished JPG, so a raw file scores lower on all of them. Compare inside one format.
+
+Install:
+
+```bash
+pip install torch torchvision pyiqa opencv-python rawpy
+```
+
+The first run downloads about 600 MB of model weights into `~/.cache/torch/hub/pyiqa`.
+The script carries a shim for `pkg_resources`, which Python 3.14 and setuptools 81
+removed, and which `openai-clip` still imports.
