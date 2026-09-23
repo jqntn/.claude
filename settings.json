@@ -2,6 +2,7 @@
   "permissions": {
     "defaultMode": "bypassPermissions"
   },
+  "model": "opus[1m]",
   "hooks": {
     "SessionStart": [
       {
@@ -25,7 +26,7 @@
   "enabledPlugins": {
     "hypervisor-tools@obvious-marketplace": true,
     "constellation@obvious-marketplace": true,
-    "caveman@caveman": true,
+    "caveman@caveman": false,
     "dotnet@dotnet-agent-skills": true,
     "dotnet-test@dotnet-agent-skills": true,
     "dotnet-advanced@dotnet-agent-skills": true,
@@ -37,7 +38,8 @@
     "dotnet-template-engine@dotnet-agent-skills": true,
     "dotnet-test-migration@dotnet-agent-skills": true,
     "dotnet-aspnetcore@dotnet-agent-skills": true,
-    "unity@claude-plugins-official": true
+    "unity@claude-plugins-official": true,
+    "ponytail@ponytail": true
   },
   "extraKnownMarketplaces": {
     "obvious-marketplace": {
@@ -58,12 +60,21 @@
         "source": "github",
         "repo": "dotnet/skills"
       }
+    },
+    "ponytail": {
+      "source": {
+        "source": "github",
+        "repo": "DietrichGebert/ponytail"
+      }
     }
   },
   "outputStyle": "Concise",
   "modelSettings": {
     "claude-opus-5": {
       "effortLevel": "xhigh"
+    },
+    "claude-opus-5-5": {
+      "effortLevel": "medium"
     }
   },
   "autoUpdatesChannel": "latest",
