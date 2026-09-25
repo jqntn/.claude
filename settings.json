@@ -24,6 +24,7 @@
     "refreshInterval": 10
   },
   "enabledPlugins": {
+    "obvious-setup@obvious-marketplace": true,
     "hypervisor-tools@obvious-marketplace": true,
     "constellation@obvious-marketplace": true,
     "caveman@caveman": false,
@@ -72,6 +73,7 @@
     }
   },
   "outputStyle": "Concise",
+  "feedbackDrafts": "off",
   "modelSettings": {
     "claude-opus-5": {
       "effortLevel": "xhigh"
@@ -85,6 +87,5 @@
   "autoMemoryEnabled": false,
   "skipDangerousModePermissionPrompt": true,
   "skipWorkflowUsageWarning": true,
-  "theme": "auto",
-  "feedbackDrafts": "off"
+  "theme": "auto"
 }
