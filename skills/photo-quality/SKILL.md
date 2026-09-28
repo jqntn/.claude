@@ -1,6 +1,7 @@
 ---
 name: photo-quality
 description: Score photos by sharpness, then copy them renamed with the score.
+disable-model-invocation: true
 ---
 
 # Photo quality filter
