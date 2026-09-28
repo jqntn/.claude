@@ -1,6 +1,7 @@
 ---
 name: photo-date-sort
 description: Sort .RW2 photos into dated folders by EXIF date.
+disable-model-invocation: true
 ---
 
 # Photo date sort
