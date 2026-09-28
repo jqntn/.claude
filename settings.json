@@ -24,9 +24,6 @@
     "refreshInterval": 10
   },
   "enabledPlugins": {
-    "obvious-setup@obvious-marketplace": true,
-    "hypervisor-tools@obvious-marketplace": true,
-    "constellation@obvious-marketplace": true,
     "caveman@caveman": false,
     "dotnet@dotnet-agent-skills": true,
     "dotnet-test@dotnet-agent-skills": true,
@@ -43,13 +40,6 @@
     "ponytail@ponytail": true
   },
   "extraKnownMarketplaces": {
-    "obvious-marketplace": {
-      "source": {
-        "source": "git",
-        "url": "https://gitlab.obvious.tech/obvious/tools/claude-marketplace.git"
-      },
-      "autoUpdate": true
-    },
     "caveman": {
       "source": {
         "source": "github",
