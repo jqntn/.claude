@@ -25,18 +25,6 @@
   },
   "enabledPlugins": {
     "caveman@caveman": false,
-    "dotnet@dotnet-agent-skills": false,
-    "dotnet-test@dotnet-agent-skills": false,
-    "dotnet-advanced@dotnet-agent-skills": false,
-    "dotnet-data@dotnet-agent-skills": false,
-    "dotnet-diag@dotnet-agent-skills": false,
-    "dotnet-msbuild@dotnet-agent-skills": false,
-    "dotnet-nuget@dotnet-agent-skills": false,
-    "dotnet-upgrade@dotnet-agent-skills": false,
-    "dotnet-template-engine@dotnet-agent-skills": false,
-    "dotnet-test-migration@dotnet-agent-skills": false,
-    "dotnet-aspnetcore@dotnet-agent-skills": false,
-    "unity@claude-plugins-official": false,
     "ponytail@ponytail": true
   },
   "extraKnownMarketplaces": {
@@ -44,13 +32,6 @@
       "source": {
         "source": "github",
         "repo": "JuliusBrussee/caveman"
-      },
-      "autoUpdate": true
-    },
-    "dotnet-agent-skills": {
-      "source": {
-        "source": "github",
-        "repo": "dotnet/skills"
       },
       "autoUpdate": true
     },
