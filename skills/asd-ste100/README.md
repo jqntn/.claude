@@ -8,8 +8,7 @@ An agent skill that removes AI slop with a writing system, not a banned-word
 list. Layer 1 rewrites the words into ASD-STE100 Simplified Technical English,
 the controlled language built in the 1980s so an aircraft mechanic could never
 misread a repair manual. Layer 2 shapes the reply for a reader with ADHD: the
-next action first, numbered steps, real time estimates, no preamble and no
-closer.
+next action first, numbered steps, no preamble and no closer.
 
 The claim behind it was tested: six engineering writing tasks, four
 conditions, two model families, scored as violations per 100 words.
@@ -104,6 +103,45 @@ The score is violations per 100 words. `--json` gives machine-readable
 output. `--fail-over N` exits 1 over the threshold, for CI gates and hooks.
 The linter uses only the Python 3 standard library. The launcher has no Node
 package dependencies.
+
+Version 2.0.3 fixes Markdown input handling. Leading YAML front matter stays
+outside both scores. The linter joins wrapped prose within each block.
+Headings, list items, table rows, and blank lines keep their boundaries.
+Bold and italic markers do not hide sentence ends.
+
+Possessive nouns do not count as contractions. The apostrophe-s check counts
+common forms such as "it's", "she's", and "let's". It leaves ambiguous noun
+forms such as "John's" for human review.
+
+File errors go to standard error. The linter checks the remaining files and
+exits 1 after the batch. Unmatched file patterns also cause exit 1.
+JSON reports for readable files keep the same format.
+
+Version 2.0.4 sets `score_version: 3`. Quoted text stays out of the score.
+Use `--count-quotes` for the version 2 count. A list item and a heading each
+start their own paragraph. One list item with more than six sentences still
+counts. `shape_version` stays 1.
+
+These fixes can change scores for the same document. Use the same Git revision
+of the linter for both sides of a comparison. The episode tables keep their
+historical measurements.
+
+Version 2.0.5 changes the time-estimate rule. Do not add an estimate the
+reader did not ask for. If you give one, use minutes, hours, or days. Never
+write "a while".
+
+## Tests
+
+From the repository root, run both suites:
+
+```sh
+python3 -m unittest discover -s videos/ep01-the-cure-for-ai-slop/asd-ste100/tests -p 'test_*.py' -v
+node --test videos/ep01-the-cure-for-ai-slop/asd-ste100/tests/run-python.test.cjs videos/ep01-the-cure-for-ai-slop/asd-ste100/tests/linter-e2e.test.cjs
+```
+
+The tests cover Markdown input, batch errors, score thresholds, and all four
+hooks through the Node launcher. CI runs both suites on Windows, macOS, and
+Linux. No test calls an agent service or writes to the real agent settings.
 
 ## Scope
 

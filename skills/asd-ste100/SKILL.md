@@ -1,9 +1,9 @@
 ---
 name: asd-ste100
-description: ASD-STE100 Simplified Technical English, and the reply shape a reader with ADHD can act on. A standing style rule, not an on-request tool. Layer 1 governs the words of every text a human reads — chat replies, docs, READMEs, commit messages, PR text, code comments, error messages, release notes, tool descriptions, task trackers, wiki pages. Layer 2 governs the order of a reply to a person — the next action first, numbered steps, real time estimates, no preamble and no closer. Neither layer touches code, identifiers, or command syntax. Load it before you write prose, and also when asked to remove "AI slop", make writing clear or plain, enforce a controlled style, or review text for STE violations. Two word modes — strict (procedures, runbooks, safety text, error messages) and STE-flavored (general prose, the default).
+description: ASD-STE100 Simplified Technical English, and the reply shape a reader with ADHD can act on. A standing style rule, not an on-request tool. Layer 1 governs the words of every text a human reads — chat replies, docs, READMEs, commit messages, PR text, code comments, error messages, release notes, tool descriptions, task trackers, wiki pages. Layer 2 governs the order of a reply to a person — the next action first, numbered steps, no preamble and no closer. Neither layer touches code, identifiers, or command syntax. Load it before you write prose, and also when asked to remove "AI slop", make writing clear or plain, enforce a controlled style, or review text for STE violations. Two word modes — strict (procedures, runbooks, safety text, error messages) and STE-flavored (general prose, the default).
 license: MIT (see LICENSE; the ASD-STE100 specification itself is not covered)
 metadata:
-  version: "2.0"
+  version: "2.0.5"
   spec: ASD-STE100 Issue 9 (January 2025)
   replaces: i-have-adhd
 ---
@@ -137,7 +137,9 @@ Start with the answer. Stop when the answer is done.
 > Bad: "Done. Ready for the next part?"
 > Good: "Step 3 of 5 done: the schema is updated. Next: backfill the new column. Do I run the script?"
 
-**Give the estimate in concrete units.**
+**If you give a time estimate, use concrete units.**
+
+Do not add an estimate the reader did not ask for. Never write "a while".
 
 > Bad: "This needs some work."
 > Good: "About 15 minutes if the tests already cover this. An afternoon if not."
@@ -222,7 +224,7 @@ Layer 2:
 2. Does the first sentence announce what you are about to do? Delete it.
 3. Does the last sentence ask "anything else?" or recap the work? Delete it.
 4. Is there a "by the way" sidebar? Move it to a separate question.
-5. Is any estimate vague ("some work", "a while")? Give minutes, hours, or days.
+5. If an estimate is present, is it vague ("some work", "a while")? Use minutes, hours, or days. Do not add an estimate the reader did not ask for.
 6. Does an action list run past five items? Split it into "do now" and "later".
 7. Is the state of multi-turn work restated? Add "step N of M".
 
