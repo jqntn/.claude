@@ -43,6 +43,9 @@
     "ponytail@ponytail": true,
     "asd-ste100@skills-dir": false
   },
+  "skillOverrides": {
+    "asd-ste100-danyuchn": "user-invocable-only"
+  },
   "extraKnownMarketplaces": {
     "obvious-marketplace": {
       "source": {
