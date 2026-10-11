@@ -25,7 +25,8 @@
   },
   "enabledPlugins": {
     "caveman@caveman": false,
-    "ponytail@ponytail": true
+    "ponytail@ponytail": true,
+    "asd-ste100@skills-dir": false
   },
   "extraKnownMarketplaces": {
     "caveman": {
