@@ -40,7 +40,8 @@
     "dotnet-test-migration@dotnet-agent-skills": true,
     "dotnet-aspnetcore@dotnet-agent-skills": true,
     "unity@claude-plugins-official": true,
-    "ponytail@ponytail": true
+    "ponytail@ponytail": true,
+    "asd-ste100@skills-dir": false
   },
   "extraKnownMarketplaces": {
     "obvious-marketplace": {
