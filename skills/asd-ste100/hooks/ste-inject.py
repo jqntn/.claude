@@ -57,7 +57,7 @@ LAYER 2 - the shape (a reply to a person, a task, a PR description)
 - No preamble, no recap, no closer. Start with the answer, stop when it is done.
 - Cap an action list at five items. A reference table has no cap.
 - Restate the state each turn: step N of M, what is done, what is next.
-- Give an estimate in minutes, hours, or days. Never "a while".
+- If you give a time estimate, use minutes, hours, or days. Do not add an estimate the reader did not ask for. Never write "a while".
 - Show what now works, in concrete terms. Stay matter-of-fact about an error.
 - Finish one issue. Offer the second one as a separate question.
 - Cut a hedge that carries no fact. Keep a qualifier that bounds a claim.

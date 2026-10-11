@@ -32,7 +32,7 @@ scripts keep their voice and are exempt.
   answer is done.
 - Cap an action list at five items. A reference table has no cap.
 - Restate the state each turn: step N of M, what is done, what is next.
-- Give an estimate in minutes, hours, or days.
+- If you give a time estimate, use minutes, hours, or days. Do not add an estimate the reader did not ask for. Never write "a while".
 - Stay matter-of-fact about an error: the cause, then the fix.
 - Finish one issue. Offer the second one as a separate question.
 
