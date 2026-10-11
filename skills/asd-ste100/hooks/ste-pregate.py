@@ -46,28 +46,89 @@ MIN_WORDS = 30        # a short message scores as noise - let it through
 TEXT_FIELDS = ("title", "description", "body", "content")
 
 
+HEREDOC = re.compile(
+    r"<<-?[ \t]*(['\"]?)([A-Za-z_][A-Za-z0-9_]*)\1[^\n]*\n(.*?)\n[ \t]*\2[ \t]*(?=\n|[);&|}]|$)",
+    re.S)
+# "git" at a command position, then at most four arguments, then "commit".
+# A command position is the start of the command, or the point after a
+# separator, a pipe, a brace group, a subshell, or a command substitution.
+# The bounded chain still covers "git -c key=value commit". "commit-tree"
+# is a different command and does not match.
+GIT_COMMIT = re.compile(
+    r"(?:^|[;&|{(\n]|\$\()[ \t]*(?:[A-Za-z_][A-Za-z0-9_]*=\S*[ \t]+)*"
+    r"git[ \t]+(?:[^\s|;&]+[ \t]+){0,4}commit(?![\w-])")
+
+
+def mask(command, heredocs):
+    """Blank out heredoc bodies and quoted text, and keep every offset.
+
+    A heredoc body or a quoted string is data, not shell syntax. Version 1
+    searched the raw command, so "git commit" inside a prompt, a JSON file, or
+    a script written by the same command turned the call into a commit, and
+    every heredoc body in it was scored as the message.
+    """
+    chars = list(command)
+    for m in heredocs:
+        for i in range(m.start(3), m.end(3)):
+            chars[i] = " "
+    out = []
+    quote = None
+    i = 0
+    while i < len(chars):
+        ch = chars[i]
+        if quote is None and ch in "'\"":
+            quote = ch
+            out.append(ch)
+        elif quote is not None and ch == "\\" and quote == '"' and i + 1 < len(chars):
+            out.append("  ")
+            i += 1
+        elif quote is not None and ch == quote:
+            quote = None
+            out.append(ch)
+        elif quote is not None:
+            out.append(" ")
+        else:
+            out.append(ch)
+        i += 1
+    return "".join(out)
+
+
 def commit_message(command):
     """The message text of a git commit command, or None.
 
-    Covers -m arguments (single or double quoted) and a heredoc body. An
-    amend, fixup, or squash with no new message passes untouched.
+    Covers -m arguments (single or double quoted) and a heredoc body that
+    belongs to the commit command. An amend, fixup, or squash with no new
+    message passes untouched. Text in other heredocs and in other commands
+    is not a commit message and stays out.
     """
-    # "git", then at most four arguments, then "commit". The lookbehind
-    # stops a match inside ".git", so prose like "--exclude .git ... then
-    # commit and push" cannot turn a non-commit command into a gated one.
-    # The bounded chain still covers "git -c key=value commit".
-    if not re.search(r"(?<![\w./-])git\s+(?:[^\s|;&]+\s+){0,4}commit\b", command):
-        return None
-    if re.search(r"--(?:no-edit|fixup|squash)\b", command):
-        return None
+    heredocs = list(HEREDOC.finditer(command))
+    masked = mask(command, heredocs)
     parts = []
-    for m in re.finditer(r"<<-?\s*'?([A-Za-z_][A-Za-z0-9_]*)'?\n(.*?)\n\1\b",
-                         command, re.S):
-        parts.append(m.group(2))
-    for m in re.finditer(r"-m\s+'([^']*)'", command, re.S):
-        parts.append(m.group(1))
-    for m in re.finditer(r'-m\s+"([^"]*)"', command, re.S):
-        parts.append(m.group(1))
+    found = False
+    for hit in GIT_COMMIT.finditer(masked):
+        found = True
+        start = hit.end()
+        stop = re.search(r"[\n;&|}]", masked[start:])
+        end = start + stop.start() if stop else len(masked)
+        # A heredoc marker on the commit line owns the body below that line.
+        line_heredocs = [m for m in heredocs if start <= m.start() < end]
+        if line_heredocs:
+            end = max(end, max(m.end() for m in line_heredocs))
+        segment = command[start:end]
+        if re.search(r"--(?:no-edit|fixup|squash)\b", masked[start:end]):
+            continue
+        parts.extend(m.group(3) for m in line_heredocs)
+        seg_masked = mask(segment, list(HEREDOC.finditer(segment)))
+        for m in re.finditer(r"(?:-m|--message)(?:\s+|=)(['\"])", seg_masked):
+            quote = m.group(1)
+            close = seg_masked.find(quote, m.end())
+            if close < 0:
+                continue
+            value = segment[m.end():close]
+            if not value.lstrip().startswith("$("):
+                parts.append(value)
+    if not found:
+        return None
     text = "\n\n".join(p for p in parts if p.strip())
     return text or None
 
