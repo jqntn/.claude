@@ -33,7 +33,6 @@
     "dotnet-advanced@dotnet-agent-skills": true,
     "dotnet-data@dotnet-agent-skills": true,
     "dotnet-diag@dotnet-agent-skills": true,
-    "dotnet-msbuild@dotnet-agent-skills": false,
     "dotnet-nuget@dotnet-agent-skills": true,
     "dotnet-upgrade@dotnet-agent-skills": true,
     "dotnet-template-engine@dotnet-agent-skills": true,
