@@ -3,6 +3,9 @@
     "defaultMode": "bypassPermissions"
   },
   "model": "opus[1m]",
+  "skillOverrides": {
+    "asd-ste100-danyuchn": "user-invocable-only"
+  },
   "hooks": {
     "SessionStart": [
       {
@@ -41,9 +44,6 @@
     "unity@claude-plugins-official": true,
     "ponytail@ponytail": true,
     "asd-ste100@skills-dir": false
-  },
-  "skillOverrides": {
-    "asd-ste100-danyuchn": "user-invocable-only"
   },
   "extraKnownMarketplaces": {
     "obvious-marketplace": {
