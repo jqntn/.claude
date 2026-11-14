@@ -59,8 +59,6 @@ ask the user first and offer `--top N`.
 pip install opencv-python-headless numpy rawpy
 ```
 
-`rawpy` stays optional and adds the raw formats.
-
 ## Neural scoring: photo_iqa.py
 
 ```bash

@@ -1,23 +1,29 @@
 #!/usr/bin/env python3
-"""Rank photos on three axes with pyiqa.
+"""Rank photos on technical quality, aesthetics and sharpness with pyiqa.
 
 Each axis is a z-score across the files of one folder.
 
-    tech   mean z-score of topiq_nr, musiq, niqe, brisque
-    aesth  mean z-score of topiq_iaa, nima, laion_aes, clipiqa+
-    sharp  z-score of the laplacian variance of the sharpest tile
+axes:
+  tech   mean z-score of topiq_nr, musiq, niqe, brisque
+  aesth  mean z-score of topiq_iaa, nima, laion_aes, clipiqa+
+  sharp  z-score of the Laplacian variance of the sharpest tile
 
 niqe and brisque are lower-better, so the script negates their z-score before the
 mean. sharp runs a 6x6 grid at native resolution and keeps the highest tile
 variance. mean averages the three axes. worst takes their minimum.
 
 A raw file decodes through rawpy at half size with camera white balance. The
-models read a copy resized to --long-edge. The laplacian reads the full frame.
+models read a copy resized to --long-edge. The Laplacian reads the full frame.
 
-Usage
-    python photo_iqa.py IN
-    python photo_iqa.py IN OUT --top 4
-    python photo_iqa.py IN OUT --rank-by worst --min-score 0.2
+examples:
+  Rank one folder, and write the CSV into it:
+    photo_iqa.py IN
+
+  Copy the 4 best files:
+    photo_iqa.py IN OUT --top 4
+
+  Copy every file with no weak axis:
+    photo_iqa.py IN OUT --rank-by worst --min-score 0.2
 """
 
 import argparse
@@ -26,151 +32,150 @@ import importlib.util
 import shutil
 import sys
 import types
+from operator import itemgetter
 from pathlib import Path
-
-import packaging
-import packaging.version
-
-if importlib.util.find_spec("pkg_resources") is None:
-    _shim = types.ModuleType("pkg_resources")
-    _shim.packaging = packaging
-    sys.modules["pkg_resources"] = _shim
 
 import cv2
 import numpy as np
+import packaging.version
+import rawpy
 import torch
 
-RAW_EXT = {".rw2", ".raw", ".arw", ".cr2", ".cr3", ".nef", ".dng", ".orf", ".raf"}
-IMG_EXT = {".jpg", ".jpeg", ".png", ".tif", ".tiff", ".webp"}
+RAW_EXTS = {
+    ".rw2",
+    ".raw",
+    ".cr2",
+    ".cr3",
+    ".nef",
+    ".arw",
+    ".orf",
+    ".raf",
+    ".dng",
+    ".pef",
+    ".srw",
+}
+IMG_EXTS = {".jpg", ".jpeg", ".png", ".tif", ".tiff", ".bmp", ".webp"}
 TECH = ["topiq_nr", "musiq", "niqe", "brisque"]
 AESTH = ["topiq_iaa", "nima", "laion_aes", "clipiqa+"]
 AXES = ["tech", "aesth", "sharp"]
+KEYS = [*AXES, "mean", "worst"]
 
 
-def load_rgb(path):
-    if path.suffix.lower() in RAW_EXT:
-        import rawpy
-
+def load_rgb(path: Path) -> np.ndarray:
+    if path.suffix.lower() in RAW_EXTS:
         with rawpy.imread(str(path)) as raw:
             return raw.postprocess(
                 use_camera_wb=True, half_size=True, no_auto_bright=False, output_bps=8
             )
-    img = cv2.imread(str(path), cv2.IMREAD_COLOR)
+    buf = np.fromfile(path, dtype=np.uint8)
+    img = cv2.imdecode(buf, cv2.IMREAD_COLOR) if buf.size else None
     if img is None:
-        raise RuntimeError(f"cannot read {path}")
+        sys.exit(f"error: cannot read {path}")
     return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
 
-def resize_long(img, long_edge):
+def resize_long(img: np.ndarray, long_edge: int) -> np.ndarray:
     h, w = img.shape[:2]
     scale = long_edge / max(h, w)
-    if scale >= 1.0:
+    if scale >= 1:
         return img
-    return cv2.resize(
-        img, (round(w * scale), round(h * scale)), interpolation=cv2.INTER_AREA
-    )
+    size = (max(1, round(w * scale)), max(1, round(h * scale)))
+    return cv2.resize(img, size, interpolation=cv2.INTER_AREA)
 
 
-def laplacian_tile_max(img, tiles=6):
+def tile_max(img: np.ndarray, grid: int = 6) -> float:
     gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-    h, w = gray.shape
-    th, tw = h // tiles, w // tiles
-    best = 0.0
-    for i in range(tiles):
-        for j in range(tiles):
-            tile = gray[i * th : (i + 1) * th, j * tw : (j + 1) * tw]
-            best = max(best, float(cv2.Laplacian(tile, cv2.CV_64F).var()))
-    return best
+    th, tw = gray.shape[0] // grid, gray.shape[1] // grid
+    tiles = (
+        gray[y * th : (y + 1) * th, x * tw : (x + 1) * tw]
+        for y in range(grid)
+        for x in range(grid)
+    )
+    return max(float(cv2.Laplacian(t, cv2.CV_64F).var()) for t in tiles)
 
 
-def zscore(values):
+def zscore(values: list[float]) -> np.ndarray:
     arr = np.asarray(values, dtype=float)
     sd = arr.std()
-    if sd == 0:
-        return np.zeros_like(arr)
-    return (arr - arr.mean()) / sd
+    return np.zeros_like(arr) if sd == 0 else (arr - arr.mean()) / sd
 
 
-def list_images(indir):
-    return sorted(
-        p
-        for p in indir.iterdir()
-        if p.is_file() and p.suffix.lower() in RAW_EXT | IMG_EXT
-    )
-
-
-def score_folder(indir, metrics, long_edge, device, quiet):
+def load_models(names: list[str], device: str) -> dict:
+    if importlib.util.find_spec("pkg_resources") is None:
+        shim = types.ModuleType("pkg_resources")
+        shim.packaging = packaging
+        sys.modules["pkg_resources"] = shim
     import pyiqa
 
-    files = list_images(indir)
-    if not files:
-        sys.exit(f"no image in {indir}")
-
     models = {}
-    for name in metrics:
+    for name in names:
         try:
             models[name] = pyiqa.create_metric(name, device=device)
         except Exception as exc:
             print(f"skip {name}: {exc}", file=sys.stderr)
+    return models
 
+
+def score(
+    files: list[Path], models: dict, long_edge: int, device: str, *, quiet: bool
+) -> list[dict]:
     rows = []
-    for k, path in enumerate(files, 1):
+    for i, path in enumerate(files, 1):
         img = load_rgb(path)
         tensor = (
             torch.from_numpy(resize_long(img, long_edge))
             .permute(2, 0, 1)
             .float()
-            .div_(255.0)
+            .div_(255)
             .unsqueeze(0)
             .to(device)
         )
-        row = {"file": path.name, "lap_tile_max": laplacian_tile_max(img)}
-        for name, model in models.items():
-            with torch.no_grad():
+        row = {"file": path.name, "lap_tile_max": tile_max(img)}
+        with torch.no_grad():
+            for name, model in models.items():
                 row[name] = float(model(tensor).item())
         rows.append(row)
         if not quiet:
-            print(f"[{k}/{len(files)}] {path.name}", flush=True)
+            print(f"[{i}/{len(files)}] {path.name}", flush=True)
+    return rows
 
-    return rows, models
 
-
-def add_axes(rows, models):
+def add_axes(rows: list[dict], models: dict) -> None:
     for axis, group in (("tech", TECH), ("aesth", AESTH)):
         active = [n for n in group if n in models]
-        if not active:
-            for row in rows:
-                row[axis] = 0.0
-            continue
         total = np.zeros(len(rows))
         for name in active:
             z = zscore([r[name] for r in rows])
-            if models[name].lower_better:
-                z = -z
-            total += z
-        for row, value in zip(rows, total):
-            row[axis] = value / len(active)
-
-    for row, value in zip(rows, zscore([r["lap_tile_max"] for r in rows])):
+            total += -z if models[name].lower_better else z
+        for row, value in zip(rows, total, strict=True):
+            row[axis] = value / len(active) if active else 0.0
+    for row, value in zip(rows, zscore([r["lap_tile_max"] for r in rows]), strict=True):
         row["sharp"] = value
-
     for row in rows:
         row["mean"] = sum(row[a] for a in AXES) / len(AXES)
         row["worst"] = min(row[a] for a in AXES)
 
 
-def report(rows, models, key):
-    width = max(len(r["file"]) for r in rows)
-    head = f"{'#':>3} {'file':<{width}}" + "".join(
-        f"{a:>7}" for a in AXES + ["mean", "worst"]
-    )
-    print("\n" + head)
-    for i, row in enumerate(rows, 1):
-        line = f"{i:>3} {row['file']:<{width}}" + "".join(
-            f"{row[a]:>7.2f}" for a in AXES + ["mean", "worst"]
+def write_csv(path: Path, rows: list[dict], models: dict) -> None:
+    loaded = [n for n in TECH + AESTH if n in models]
+    with path.open("w", newline="", encoding="utf-8") as fh:
+        writer = csv.DictWriter(
+            fh,
+            fieldnames=["rank", "file", *KEYS, "lap_tile_max", *loaded],
+            extrasaction="ignore",
         )
-        print(line)
+        writer.writeheader()
+        writer.writerows({"rank": i, **row} for i, row in enumerate(rows, 1))
+    print(f"wrote {path}")
 
+
+def print_summary(rows: list[dict], models: dict, key: str) -> None:
+    width = max(len(r["file"]) for r in rows)
+    print(f"\n{'#':>3} {'file':<{width}}" + "".join(f"{k:>7}" for k in KEYS))
+    for i, row in enumerate(rows, 1):
+        print(
+            f"{i:>3} {row['file']:<{width}}" + "".join(f"{row[k]:>7.2f}" for k in KEYS)
+        )
     laps = [r["lap_tile_max"] for r in rows]
     spread = max(laps) / min(laps) if min(laps) > 0 else float("inf")
     print(f"\nsharpness {min(laps):.0f} to {max(laps):.0f}, spread {spread:.2f}x")
@@ -180,73 +185,89 @@ def report(rows, models, key):
     print(f"sorted by {key}")
 
 
-def write_csv(path, rows, models):
-    names = [n for n in TECH + AESTH if n in models]
-    cols = ["rank", "file"] + AXES + ["mean", "worst", "lap_tile_max"] + names
-    with path.open("w", newline="", encoding="utf-8") as fh:
-        writer = csv.DictWriter(fh, fieldnames=cols)
-        writer.writeheader()
-        for i, row in enumerate(rows, 1):
-            writer.writerow({"rank": i, **{c: row.get(c) for c in cols if c != "rank"}})
-    print(f"wrote {path}")
-
-
-def main():
-    ap = argparse.ArgumentParser(
-        description="Rank photos on technical quality, aesthetics and sharpness.",
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=__doc__,
     )
-    ap.add_argument("indir", help="folder of photos to score")
-    ap.add_argument("outdir", nargs="?", help="folder to copy the keepers into")
-    ap.add_argument(
+    parser.add_argument("indir", type=Path, help="folder that holds the photos")
+    parser.add_argument(
+        "outdir",
+        type=Path,
+        nargs="?",
+        help="folder to copy the best files into, created if missing",
+    )
+    parser.add_argument(
         "--rank-by",
+        choices=KEYS,
         default="mean",
-        choices=AXES + ["mean", "worst"],
-        help="sort key, default mean",
+        help="sort key (default: %(default)s)",
     )
-    ap.add_argument(
-        "--top", type=int, default=0, help="copy this many files, 0 copies every file"
+    parser.add_argument(
+        "--min-score",
+        type=float,
+        help="copy only the files whose sort value reaches this value",
     )
-    ap.add_argument(
-        "--min-score", type=float, help="copy only files at or above this sort value"
-    )
-    ap.add_argument(
+    parser.add_argument("--top", type=int, help="copy only the N best files")
+    parser.add_argument(
         "--metrics",
         default=",".join(TECH + AESTH),
-        help="pyiqa metrics to run, comma separated",
+        help="comma-separated pyiqa metrics to run (default: all eight)",
     )
-    ap.add_argument(
-        "--long-edge", type=int, default=1536, help="resize before the models, default 1536"
+    parser.add_argument(
+        "--long-edge",
+        type=int,
+        default=1536,
+        help="resize the long edge to this many pixels before the models "
+        "(default: %(default)s)",
     )
-    ap.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
-    ap.add_argument("--csv-name", default="pyiqa_ranking.csv")
-    ap.add_argument("--quiet", action="store_true", help="hide the per file progress")
-    args = ap.parse_args()
+    parser.add_argument(
+        "--device",
+        default="cuda" if torch.cuda.is_available() else "cpu",
+        help="torch device (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--csv-name",
+        default="pyiqa_ranking.csv",
+        help="name of the CSV file (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        help="hide the progress for each file",
+    )
+    args = parser.parse_args()
 
-    indir = Path(args.indir)
-    metrics = [m.strip() for m in args.metrics.split(",") if m.strip()]
-    rows, models = score_folder(
-        indir, metrics, args.long_edge, args.device, args.quiet
+    if not args.indir.is_dir():
+        sys.exit(f"error: input folder not found: {args.indir}")
+    files = sorted(
+        p
+        for p in args.indir.iterdir()
+        if p.is_file() and p.suffix.lower() in RAW_EXTS | IMG_EXTS
     )
+    if not files:
+        sys.exit(f"error: no matching images in {args.indir}")
+
+    names = [m.strip() for m in args.metrics.split(",") if m.strip()]
+    models = load_models(names, args.device)
+    rows = score(files, models, args.long_edge, args.device, quiet=args.quiet)
     add_axes(rows, models)
-    rows.sort(key=lambda r: r[args.rank_by], reverse=True)
+    rows.sort(key=itemgetter(args.rank_by), reverse=True)
 
-    out = Path(args.outdir) if args.outdir else indir
+    out = args.outdir or args.indir
     out.mkdir(parents=True, exist_ok=True)
     write_csv(out / args.csv_name, rows, models)
-    report(rows, models, args.rank_by)
+    print_summary(rows, models, args.rank_by)
 
     if not args.outdir:
         return
-
     keep = rows
     if args.min_score is not None:
         keep = [r for r in keep if r[args.rank_by] >= args.min_score]
-    if args.top:
+    if args.top is not None:
         keep = keep[: args.top]
     for i, row in enumerate(keep, 1):
-        src = indir / row["file"]
+        src = args.indir / row["file"]
         shutil.copy2(src, out / f"{i:02d}_{row[args.rank_by]:+.2f}_{src.name}")
     print(f"\ncopied {len(keep)} file(s) to {out}")
 
