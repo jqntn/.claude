@@ -28,16 +28,16 @@ rawpy.
 
 examples:
   Score one folder and copy every file, the sharpest first:
-    photo_quality.py IN OUT
+    photo_sharpness.py IN OUT
 
   Rank birds by subject sharpness, and keep the 50 best files:
-    photo_quality.py IN OUT --metric tile-max --top 50
+    photo_sharpness.py IN OUT --metric tile-max --top 50
 
   Score a whole library, and write scores.csv only:
-    photo_quality.py IN OUT --recursive --dry-run
+    photo_sharpness.py IN OUT --recursive --dry-run
 
   Drop the worst files, after you read scores.csv:
-    photo_quality.py IN OUT --min-score 36
+    photo_sharpness.py IN OUT --min-score 36
 
 output:
   OUT/00166.78__P1040528.JPG   the copy, renamed with the score
