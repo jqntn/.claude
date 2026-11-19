@@ -27,6 +27,7 @@
     "refreshInterval": 10
   },
   "enabledPlugins": {
+    "obvious-setup@obvious-marketplace": true,
     "caveman@caveman": false,
     "dotnet-test@dotnet-agent-skills": true,
     "dotnet-advanced@dotnet-agent-skills": true,
