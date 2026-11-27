@@ -1,0 +1,6 @@
+{
+  "enabledPlugins": {
+    "hypervisor-core@obvious-marketplace": true,
+    "obvious-setup@obvious-marketplace": true
+  }
+}
