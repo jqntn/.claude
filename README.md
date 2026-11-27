@@ -28,6 +28,8 @@ plugin ships.
 
 - `skills/asd-ste100/`: a vendored writing skill.
 
+- `ooda/.claude/`: the local settings of the ooda project.
+
 The `.gitignore` denies everything, then allows the files above. Credentials,
 history, transcripts, caches, and sessions stay out of the repo.
 
